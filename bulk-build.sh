@@ -5,6 +5,7 @@ VERSION=$1
 
 if [ "$VERSION" = "" ]; then
   echo "Usage: $0 <ocaml-version>"
+  exit 1
 fi
 
 JOBS=4

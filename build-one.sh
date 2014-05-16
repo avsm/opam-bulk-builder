@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
 
-VERSION=$1
-RUN=$2
-p=$3
+IMAGE=$1
+VERSION=$2
+RUN=$3
+p=$4
 
-sudo docker.io run opam:ubuntu-${VERSION} opam installext $p > $RUN/raw/$p 2>&1
+sudo docker.io run opam:${IMAGE}-${VERSION} opam installext $p > $RUN/raw/$p 2>&1
 if [ $? != 0 ]; then
   ln -sf ../raw/$p $RUN/err/$p
   git add $RUN/err/$p

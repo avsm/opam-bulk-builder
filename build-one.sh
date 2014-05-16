@@ -6,10 +6,10 @@ p=$3
 
 sudo docker.io run opam:ubuntu-${VERSION} opam installext $p > $RUN/raw/$p 2>&1
 if [ $? != 0 ]; then
-  ln -s ../raw/$p $RUN/err/$p
+  ln -sf ../raw/$p $RUN/err/$p
   git add $RUN/err/$p
 else
-  ln -s ../raw/$p $RUN/ok/$p
+  ln -sf ../raw/$p $RUN/ok/$p
   git add $RUN/ok/$p
 fi
 git add $RUN/raw/$p

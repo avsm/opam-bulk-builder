@@ -11,11 +11,13 @@ fi
 
 JOBS=4
 DATE=`date +%Y%m%d`
+WRKDIR=`pwd`
 . ./config.sh
 if [ ! -d $LOG_REPO ]; then
   git clone $LOG_REPO_URL $LOG_REPO
+else
+  cd $LOG_REPO && git pull --no-edit
 fi
-WRKDIR=`pwd`
 cd $LOG_REPO
 RUN=${DATE}/${VERSION}
 rm -f PKGS

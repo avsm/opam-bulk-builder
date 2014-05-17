@@ -6,6 +6,13 @@ RUN=$3
 p=$4
 
 sudo docker.io run opam:${IMAGE}-${VERSION} opam installext $p > $RUN/raw/$p 2>&1
+
+L=git-lock
+lockfile-create $L
+lockfile-touch $L &
+# Save the PID of the lockfile-touch process
+LP="$!"
+
 if [ $? != 0 ]; then
   ln -sf ../raw/$p $RUN/err/$p
   git add $RUN/err/$p
@@ -17,3 +24,6 @@ git add $RUN/raw/$p
 git commit -m "$RUN: $p " -a
 git pull --no-edit
 git push origin master || true
+
+kill "${LP}"
+lockfile-remove $L

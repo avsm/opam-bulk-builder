@@ -21,7 +21,8 @@ fi
 cd $LOG_REPO
 RUN=${DATE}/${VERSION}
 rm -f PKGS
-for i in $(opam list -s -a); do echo $i >> PKGS; done
+PKGS=`sudo docker.io run opam:$IMAGE-$VERSION opam list -s -a`
+for i in $PKGS; do echo $i >> PKGS-$IMAGE-$VERSION; done
 mkdir -p $RUN/raw $RUN/err $RUN/ok
-cat PKGS | parallel -j ${JOBS} ${WRKDIR}/build-one.sh $IMAGE $VERSION $RUN
+cat PKGS-$IMAGE-$VERSION | parallel -j ${JOBS} ${WRKDIR}/build-one.sh $IMAGE $VERSION $RUN
 git push origin master

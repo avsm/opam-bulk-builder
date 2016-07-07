@@ -11,16 +11,14 @@ if [ "$PKG" = "" ]; then
   exit 1
 fi
 
-META=$LOGDIR/${PKG}
-mkdir -p ${META}
-opam install --show-actions $PKG > ${META}/actions 2>&1
-opam show $PKG > ${META}/info 2>&1
+opam install --show-actions $PKG > ${LOGDIR}/actions 2>&1
+opam show $PKG > ${LOGDIR}/info 2>&1
 starttime=`date +%s`
-echo ${starttime} > ${META}/start_time
-opam depext -uiv $PKG > ${META}/stdout 2>${META}/stderr
+echo ${starttime} > ${LOGDIR}/start_time
+opam depext -uiv $PKG > ${LOGDIR}/stdout 2>${LOGDIR}/stderr
 RES=$?
 endtime=`date +%s`
-echo ${endtime} > ${META}/end_time
+echo ${endtime} > ${LOGDIR}/end_time
 difftime=$(($endtime - $starttime))
-echo $difftime > ${META}/build_time
+echo $difftime > ${LOGDIR}/build_time
 exit $RES

@@ -6,4 +6,4 @@ if [ ! -e keys/id_rsa ]; then
 fi
 
 docker build -t bulk-local .
-docker run -v `pwd`/keys/id_rsa:/home/opam/.ssh/id_rsa -v `pwd`/keys/id_rsa.pub:/home/opam/.ssh/id_rsa.pub bulk-local /home/opam/command.sh $1
+docker run -e SSH_PRIVATE_RSA_KEY_B64="`base64 keys/id_rsa`" bulk-local $1

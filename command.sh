@@ -162,7 +162,7 @@ init)
   gpull
   rm -rf "$FULLDIR"
   mkdir -p "$FULLDIR"
-  opam list -asS > "$FULLDIR/packages"
+  opam list -asS $* > "$FULLDIR/packages"
   mkdir -p "$FULLDIR/queue"
   for p in `cat "$FULLDIR/packages"`; do
     echo 0 > "$FULLDIR/queue/$p"

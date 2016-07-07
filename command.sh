@@ -1,13 +1,9 @@
 #!/usr/bin/env bash
 
 COMMAND=$1
-
 shift
-WRKDIR=$1
 
-if [ "$WRKDIR" = "" ]; then
-  WRKDIR=/home/opam/data
-fi
+WRKDIR=/home/opam/data
 
 if [ ! -d "${WRKDIR}" ]; then
   echo "Usage: $0 [init|process] <git-data-dir>"

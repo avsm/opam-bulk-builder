@@ -12,7 +12,7 @@ fi
 if [ ! -d "${WRKDIR}" ]; then
   echo "Usage: $0 [init|process] <git-data-dir>"
   echo Error: $1 not a valid directory
-  exit 1
+  exit 0
 fi
 
 cd "$WRKDIR"
@@ -20,7 +20,7 @@ cd "$WRKDIR"
 COMMIT=`git -C /home/opam/opam-repository rev-parse HEAD`
 if [ "$COMMIT" = "" ]; then
   echo Unable to get opam-repository commit id
-  echo exit 1
+  echo exit 0
 fi
 
 STATEDIR="$WRKDIR/state/$COMMIT"
@@ -119,20 +119,22 @@ dobuild() {
   git rm -q "$FULLDIR/processing/$BUILD"
   echo TODO metadata, built by `uname -n` > "$FULLDIR/results/$STATE/$BUILD"
   gcommit $BUILD
-  retry 10 gpush || (logred FAIL Perma push conflict building $BUILD; exit 2)
+  retry 20 gpush || (logred FAIL Perma push conflict building $BUILD; exit 0)
   loggreen SUCCESS $1
+  exit 1
 }
 
 gpop() {
   gpull
   if [ ! -e "$FULLDIR/packages" ]; then
     echo Need to initialise the package list before processing this queue
-    exit 1
+    echo Normal exit code to avoid restarting.
+    exit 0
   fi
   Q=`head -1 "$FULLDIR/packages"`
   if [ "$Q" = "" ]; then
-    log "No work to do"
-    echo exit 2
+    log "No work to do, normal exit code"
+    exit 0
   fi
   tail -n +2 "$FULLDIR/packages" > "$FULLDIR/packages.new"
   mv "$FULLDIR/packages.new" "$FULLDIR/packages"
@@ -184,6 +186,6 @@ process)
   ;;
 *)
   echo Unknown command $COMMAND
-  exit 1
+  exit 0
   ;;
 esac

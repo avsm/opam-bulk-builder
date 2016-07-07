@@ -131,7 +131,7 @@ gpop() {
   fi
   Q=`head -1 "$FULLDIR/packages"`
   if [ "$Q" = "" ]; then
-    log No work to do
+    log "No work to do"
     echo exit 2
   fi
   tail -n +2 "$FULLDIR/packages" > "$FULLDIR/packages.new"

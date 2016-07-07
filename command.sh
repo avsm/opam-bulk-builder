@@ -124,8 +124,11 @@ dobuild() {
 }
 
 gpop() {
-  rm -f /tmp/restart
   gpull
+  if [ ! -e "$FULLDIR/packages" ]; then
+    echo Need to initialise the package list before processing this queue
+    exit 1
+  fi
   Q=`head -1 "$FULLDIR/packages"`
   if [ "$Q" = "" ]; then
     log No work to do

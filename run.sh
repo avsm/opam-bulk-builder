@@ -6,4 +6,4 @@ if [ ! -e keys/id_rsa ]; then
 fi
 
 docker build -t bulk-local .
-docker run -e SSH_PRIVATE_RSA_KEY_B64="`base64 keys/id_rsa`" bulk-local $1
+docker run -e SSH_PRIVATE_RSA_KEY_B64="`base64 keys/id_rsa`" bulk-local $*

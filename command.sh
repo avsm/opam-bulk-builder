@@ -114,6 +114,7 @@ dobuild() {
   else
     STATE=err
   fi
+  echo $STATE > $ODIR/result
   mkdir -p "$FULLDIR/results/$STATE"
   git rm -q "$FULLDIR/processing/$BUILD"
   echo TODO metadata, built by `uname -n` > "$FULLDIR/results/$STATE/$BUILD"

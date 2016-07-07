@@ -107,10 +107,13 @@ dobuild() {
   BUILD=$1
   ODIR=$2
   log "Building $BUILD"
-  echo opam depext -ui $BUILD > $ODIR/stdout
-  rsleep
-  rsleep
-  STATE=ok
+  /home/opam/build-package.sh $ODIR $BUILD
+  RET=$?
+  if [ $RET -eq 0 ]; then
+    STATE=ok
+  else
+    STATE=err
+  fi
   mkdir -p "$FULLDIR/results/$STATE"
   git rm -q "$FULLDIR/processing/$BUILD"
   echo TODO metadata, built by `uname -n` > "$FULLDIR/results/$STATE/$BUILD"

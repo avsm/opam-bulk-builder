@@ -7,4 +7,5 @@ RUN git clone -b master git://github.com/avsm/mirage-bulk-logs /home/opam/data
 WORKDIR /home/opam/data
 RUN git remote add worigin git@github.com:avsm/mirage-bulk-logs
 COPY command.sh /home/opam/command.sh
+COPY build-package.sh /home/opam/build-package.sh
 ENTRYPOINT ["/usr/bin/ssh-env-config.sh","/home/opam/command.sh"]

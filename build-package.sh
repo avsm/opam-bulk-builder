@@ -3,11 +3,11 @@
 
 LOGDIR=$1
 shift
-PKG=$1
+PKG=$*
 shift
 
 if [ "$PKG" = "" ]; then
-  echo "Usage: $0 <logdir> <pkg name>"
+  echo "Usage: $0 <logdir> <pkg1> <pkg2> ..."
   exit 1
 fi
 

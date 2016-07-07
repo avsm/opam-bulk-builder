@@ -1,0 +1,3 @@
+#!/bin/sh
+
+ssh-keygen -N "" -q -f keys/id_rsa

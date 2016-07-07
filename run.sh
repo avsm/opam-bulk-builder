@@ -1,4 +1,4 @@
-#!/bin/sh -x
+#!/bin/sh -e
 
 if [ ! -e keys/id_rsa ]; then
   echo Need to run ./generate-keys and place the keys/id_rsa.pub in the deploy keys for the log repo

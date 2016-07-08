@@ -163,6 +163,8 @@ gpop() {
 cd "$WRKDIR"
 case $COMMAND in
 init)
+  git -C /home/opam/opam-repository pull
+  opam update -u -y
   gpull
   rm -rf "$FULLDIR"
   mkdir -p "$FULLDIR"

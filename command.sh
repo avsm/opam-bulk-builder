@@ -17,19 +17,20 @@ OCAML_VERSION=`ocamlc -version`
 ARCH=`uname -m`
 eval `opam config env`
 
-set_state_vars() {
-  COMMIT=`git -C /home/opam/opam-repository rev-parse HEAD`
-  if [ "$COMMIT" = "" ]; then
-    echo Unable to get opam-repository commit id
-    echo exit 0
-  fi
+if [ "$OPAM_REPO_REV" = "" ]; then
+  echo Must set OPAM_REPO_REV to the Git SHA of the desired changeset to build
+  exit 0
+fi
 
-  STATEDIR="$WRKDIR/state/$COMMIT"
-  SUBDIR="$OCAML_VERSION/$ARCH"
-  FULLDIR="$STATEDIR/$SUBDIR"
-}
+git -C /home/opam/opam-repository pull
+git -C /home/opam/opam-repository checkout $OPAM_REPO_REV || exit 0
+opam update -u -y
+# TODO optimize this to not require opam update if cset hasnt changed
 
-set_state_vars
+COMMIT=$OPAM_REPO_REV
+STATEDIR="$WRKDIR/state/$COMMIT"
+SUBDIR="$OCAML_VERSION/$ARCH"
+FULLDIR="$STATEDIR/$SUBDIR"
 
 ## Logging in pretty colors
 green='\e[0;32m'
@@ -168,9 +169,6 @@ gpop() {
 cd "$WRKDIR"
 case $COMMAND in
 init)
-  git -C /home/opam/opam-repository pull
-  set_state_vars
-  opam update -u -y
   gpull
   rm -rf "$FULLDIR"
   mkdir -p "$FULLDIR"

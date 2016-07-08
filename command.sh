@@ -13,20 +13,25 @@ fi
 
 cd "$WRKDIR"
 
-COMMIT=`git -C /home/opam/opam-repository rev-parse HEAD`
-if [ "$COMMIT" = "" ]; then
-  echo Unable to get opam-repository commit id
-  echo exit 0
-fi
-
-STATEDIR="$WRKDIR/state/$COMMIT"
-eval `opam config env`
-
 OCAML_VERSION=`ocamlc -version`
 ARCH=`uname -m`
-SUBDIR="$OCAML_VERSION/$ARCH"
-FULLDIR="$STATEDIR/$SUBDIR"
+eval `opam config env`
 
+set_state_vars() {
+  COMMIT=`git -C /home/opam/opam-repository rev-parse HEAD`
+  if [ "$COMMIT" = "" ]; then
+    echo Unable to get opam-repository commit id
+    echo exit 0
+  fi
+
+  STATEDIR="$WRKDIR/state/$COMMIT"
+  SUBDIR="$OCAML_VERSION/$ARCH"
+  FULLDIR="$STATEDIR/$SUBDIR"
+}
+
+set_state_vars
+
+## Logging in pretty colors
 green='\e[0;32m'
 red='\e[0;31m'
 endColor='\e[0m'
@@ -164,6 +169,7 @@ cd "$WRKDIR"
 case $COMMAND in
 init)
   git -C /home/opam/opam-repository pull
+  set_state_vars
   opam update -u -y
   gpull
   rm -rf "$FULLDIR"

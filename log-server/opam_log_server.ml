@@ -28,7 +28,7 @@ class items db = object(self)
   method process_post rd =
     Cohttp_lwt_body.to_string rd.Wm.Rd.req_body >>= fun body ->
     Logs.debug (fun p -> p "Got log body of length %d" (String.length body));
-    Memory_db.Db.add db body >>= fun new_id ->
+    Db.Memory_db.add db body >>= fun new_id ->
     Wm.Rd.redirect ("/log/" ^ new_id) rd |>
     Wm.continue true
 end
@@ -39,7 +39,7 @@ class item db = object(self)
   inherit [Cohttp_lwt_body.t] Wm.resource
 
   method private to_json rd =
-    Memory_db.Db.get db (self#id rd)
+    Db.Memory_db.get db (self#id rd)
     >>= function
       | None       -> assert false
       | Some value -> Wm.continue (`String value) rd
@@ -49,7 +49,7 @@ class item db = object(self)
 
   method resource_exists rd =
     let id = self#id rd in
-    Memory_db.Db.get db (self#id rd)
+    Db.Memory_db.get db (self#id rd)
     >>= function
       | None   ->
          Logs.debug (fun p -> p "resource_exists: false for %s" id);
@@ -67,7 +67,7 @@ class item db = object(self)
     Wm.continue [] rd
 
   method delete_resource rd =
-    Memory_db.Db.delete db (self#id rd)
+    Db.Memory_db.delete db (self#id rd)
     >>= fun deleted ->
       let resp_body =
         if deleted
@@ -85,7 +85,7 @@ let main () =
   let port = 8080 in
   Logs.info (fun p -> p "Listening on port %d" port);
   (* create the database *)
-  let db = Memory_db.Db.create () in
+  let db = Db.Memory_db.create () in
   (* the route table *)
   let routes = [
     ("/logs", fun () -> new items db) ;
@@ -116,7 +116,7 @@ let main () =
       (Sexplib.Sexp.to_string_hum (Conduit_lwt_unix.sexp_of_flow ch)))
   in
   (* init the database with two items *)
-  Memory_db.Db.add db "foo" >>= fun h -> Logs.debug (fun p -> p "added foo with hash %s" h);
+  Db.Memory_db.add db "foo" >>= fun h -> Logs.debug (fun p -> p "added foo with hash %s" h);
   let config = Server.make ~callback ~conn_closed () in
   Server.create  ~mode:(`TCP(`Port port)) config
   >>= (fun () -> Printf.eprintf "hello_lwt: listening on 0.0.0.0:%d%!" port;

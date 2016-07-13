@@ -13,7 +13,7 @@ end
 (** A resource for querying all the items in the database via GET and creating
     a new item via POST. Check the [Location] header of a successful POST
     response for the URI of the item. *)
-class items db = object(self)
+class items (db:Db.t) = object(self)
   inherit [Cohttp_lwt_body.t] Wm.resource
 
   method allowed_methods rd =
@@ -28,18 +28,18 @@ class items db = object(self)
   method process_post rd =
     Cohttp_lwt_body.to_string rd.Wm.Rd.req_body >>= fun body ->
     Logs.debug (fun p -> p "Got log body of length %d" (String.length body));
-    Db.Memory_db.add db body >>= fun new_id ->
+    db#add body >>= fun new_id ->
     Wm.Rd.redirect ("/log/" ^ new_id) rd |>
     Wm.continue true
 end
 
 (** A resource for querying an individual item in the database by id via GET,
     modifying an item via PUT, and deleting an item via DELETE. *)
-class item db = object(self)
+class item (db:Db.t) = object(self)
   inherit [Cohttp_lwt_body.t] Wm.resource
 
   method private to_json rd =
-    Db.Memory_db.get db (self#id rd)
+    db#get (self#id rd)
     >>= function
       | None       -> assert false
       | Some value -> Wm.continue (`String value) rd
@@ -49,7 +49,7 @@ class item db = object(self)
 
   method resource_exists rd =
     let id = self#id rd in
-    Db.Memory_db.get db (self#id rd)
+    db#get (self#id rd)
     >>= function
       | None   ->
          Logs.debug (fun p -> p "resource_exists: false for %s" id);
@@ -67,7 +67,7 @@ class item db = object(self)
     Wm.continue [] rd
 
   method delete_resource rd =
-    Db.Memory_db.delete db (self#id rd)
+    db#delete (self#id rd)
     >>= fun deleted ->
       let resp_body =
         if deleted
@@ -85,7 +85,7 @@ let main () =
   let port = 8080 in
   Logs.info (fun p -> p "Listening on port %d" port);
   (* create the database *)
-  let db = Db.Memory_db.create () in
+  let db = Db.file "./db" in
   (* the route table *)
   let routes = [
     ("/logs", fun () -> new items db) ;
@@ -115,8 +115,6 @@ let main () =
     Logs.info (fun p -> p "connection %s closed"
       (Sexplib.Sexp.to_string_hum (Conduit_lwt_unix.sexp_of_flow ch)))
   in
-  (* init the database with two items *)
-  Db.Memory_db.add db "foo" >>= fun h -> Logs.debug (fun p -> p "added foo with hash %s" h);
   let config = Server.make ~callback ~conn_closed () in
   Server.create  ~mode:(`TCP(`Port port)) config
   >>= (fun () -> Printf.eprintf "hello_lwt: listening on 0.0.0.0:%d%!" port;

@@ -1,13 +1,8 @@
-(* Store values by their hash *)
-module type DB = sig
-  type t
-
-  val get : t -> string -> string option Lwt.t
-  val add : t -> string -> string Lwt.t
-  val delete : t -> string -> bool Lwt.t
-end
-
 open Lwt.Infix
+
+type t = 
+  < add : string -> string Lwt.t; delete : string -> bool Lwt.t;
+    get : string -> string option Lwt.t >
 
 module Id = struct
   type t = string
@@ -19,28 +14,24 @@ module Id = struct
       |_ -> false) t)
 end
 
-module File_db = struct
-  (* Directory root *)
-  type t = string
+let file db =
 
-  let hash s = Sha1.string s |> Sha1.to_hex
+  let lookup id =
+    if Id.check id then
+      Filename.concat db id
+    else 
+      raise (Failure "invalid id")
+  in
+  let src = Logs.Src.create ~doc:"file_db" "Db" in
+  let _  = Logs.info (fun p -> p "Using file database at %s" db) in
 
-  (* Id must be a valid sha1 hash *)
-  let lookup db id =
-    Filename.concat db id
-
-  let src = Logs.Src.create ~doc:"file_db" "Db"
-
-  let create ~root_dir =
-    Logs.debug ~src (fun p -> p "Created new file db at root %s" root_dir);
-    (* TODO check for existence of [root] *)
-    root_dir
+  object
  
-  let get db id =
+  method get id =
     Logs.debug ~src (fun p -> p "get key id %s" id);
     Lwt.catch (fun () ->
       let buf = Buffer.create 16384 in
-      lookup db id |>
+      lookup id |>
       Lwt_io.lines_of_file |>
       Lwt_stream.iter_s (fun line ->
         Buffer.add_string buf line;
@@ -53,37 +44,32 @@ module File_db = struct
       Lwt.return_none
     )
 
-  let add db v =
-    let id = hash v in
+  method add v =
+    let id = Id.make v in
     Logs.debug ~src (fun p -> p "Added item of length %d with hash %s" (String.length v) id);
-    let temp_dir = Filename.concat db "tmp" in
-    let temp_file = Filename.temp_file ~temp_dir "log" "new" in
+    let temp_file = Filename.temp_file ~temp_dir:db "tmp_" "_tmp" in
     Lwt_io.with_file ~mode:Lwt_io.output temp_file (fun oc -> Lwt_io.write oc v) >>= fun () ->
-    Lwt_unix.rename temp_file (lookup db id) >>= fun () ->
+    Lwt_unix.rename temp_file (lookup id) >>= fun () ->
     Lwt.return id
   
-  let delete db id =
+  method delete id =
     Lwt.catch (fun () ->
       if Id.check id then
-         Lwt_unix.unlink (lookup db id) >>= fun () ->
+         Lwt_unix.unlink (lookup id) >>= fun () ->
          Lwt.return_true
       else
          Lwt.return_false
     ) (fun exn -> Lwt.return_false)
 end
 
-module Memory_db = struct
-
-  type t = (string, string) Hashtbl.t
-
-  let hash s = Sha1.string s |> Sha1.to_hex
-  let src = Logs.Src.create ~doc:"memory_db" "Db"
-
-  let create () =
+let memory () =
+  let src = Logs.Src.create ~doc:"memory_db" "Db" in
+  let db =
     Logs.debug ~src (fun p -> p "Created new database");
     Hashtbl.create 3
-
-  let get db id =
+  in
+  object
+  method get id =
     try
       let v = Hashtbl.find db id in
       Logs.debug ~src (fun p -> p "Found item: id %s (length %d)" id (String.length v));
@@ -92,13 +78,13 @@ module Memory_db = struct
       Logs.debug ~src (fun p -> p "Not found: id %s" id);
       Lwt.return_none
 
-  let add db v =
-    let h = hash v in
+  method add v =
+    let h = Id.make v in
     Logs.debug ~src (fun p -> p "Added item of length %d with hash %s" (String.length v) h);
     Hashtbl.replace db h v;
     Lwt.return h
 
-  let delete db id =
+  method delete id =
     try
       let _ = Hashtbl.find db id in
       Hashtbl.remove db id;

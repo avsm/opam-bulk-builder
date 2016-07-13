@@ -1,18 +1,7 @@
-(* Store values by their hash *)
-module type DB = sig
-  type t
+type t = 
+  < add : string -> string Lwt.t; delete : string -> bool Lwt.t;
+    get : string -> string option Lwt.t >
 
-  val get : t -> string -> string option Lwt.t
-  val add : t -> string -> string Lwt.t
-  val delete : t -> string -> bool Lwt.t
-end
+val file : string -> t
+val memory : unit -> t
 
-module Memory_db : sig
-  include DB
-  val create : unit -> t
-end
-
-module File_db : sig
-  include DB
-  val create : root_dir:string -> t
-end

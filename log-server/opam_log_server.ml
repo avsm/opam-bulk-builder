@@ -29,8 +29,8 @@ class items (db:Db.t) = object(self)
     Cohttp_lwt_body.to_string rd.Wm.Rd.req_body >>= fun body ->
     Logs.debug (fun p -> p "Got log body of length %d" (String.length body));
     db#add body >>= fun new_id ->
-    Wm.Rd.redirect ("/log/" ^ new_id) rd |>
-    Wm.continue true
+    let resp_body = `String (Printf.sprintf "{\"status\":\"ok\",\"id\":\"%s\"}" new_id) in
+    Wm.continue true { rd with Wm.Rd.resp_body }
 end
 
 (** A resource for querying an individual item in the database by id via GET,

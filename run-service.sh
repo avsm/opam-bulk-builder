@@ -14,6 +14,7 @@ docker service create \
   --replicas 3 \
   --name opam-build \
   --restart-condition on_failure \
+  --network opam-net \
   -e OPAM_REPO_REV="${OPAM_REPO_REV}" \
   -e SSH_PRIVATE_RSA_KEY_B64="`base64 keys/id_rsa`" \
   avsm/opam-bulk-build process

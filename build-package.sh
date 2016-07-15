@@ -18,9 +18,6 @@ opam show $PKG > ${LOGDIR}/info 2>&1
 starttime=`date +%s`
 echo ${starttime} > ${LOGDIR}/start_time
 jsontee -- opam-depext -uiv $PKG > /tmp/log.json
-echo LOG:
-cat /tmp/log.json
-echo ENDLOG
 # TODO parse out exit code and set RES to that to signal error
 hash=`curl -s --data-binary @/tmp/log.json -X POST http://logs:8080/logs | jq -r .id`
 echo $hash > ${LOGDIR}/logs

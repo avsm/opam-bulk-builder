@@ -7,7 +7,7 @@ if [ ! -e keys/id_rsa ]; then
   exit 1
 fi
 
-docker service rm opam-build || true
+docker service rm opam-build 2>/dev/null || true
 
 if [ "$1" = "" ]; then
   OPAM_REPO_REV=$(curl --silent https://api.github.com/repos/ocaml/opam-repository/branches| jq -cr '.[] | select (.name | contains("master"))? | .commit.sha')

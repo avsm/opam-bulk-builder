@@ -89,6 +89,7 @@ ginitpull() {
   log ginitpull
   git pull -q -r --no-commit --no-edit || (log aborting rebase; git rebase --abort; rsleep; return 1)
   git checkout --track -B state-$OPAM_REPO_REV
+  git pull -q -r --no-commit --no-edit || (log aborting rebase; git rebase --abort; rsleep; return 1)
   return 0
 }
 

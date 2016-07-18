@@ -85,6 +85,13 @@ gcommit() {
   git commit -q -a -m "build log for $BUILD"
 }
 
+ginitpull() {
+  log ginitpull
+  git pull -q -r --no-commit --no-edit || (log aborting rebase; git rebase --abort; rsleep; return 1)
+  git checkout --track -B $OPAM_REPO_REV
+  return 0
+}
+
 gpull() {
   log gpull
   git pull -q -r --no-commit --no-edit || (log aborting rebase; git rebase --abort; rsleep; return 1)
@@ -131,7 +138,6 @@ dobuild() {
 }
 
 gpop() {
-  gpull
   if [ ! -e "$FULLDIR/packages" ]; then
     echo Need to initialise the package list before processing this queue
     echo Normal exit code to avoid restarting.
@@ -169,7 +175,7 @@ gpop() {
 cd "$WRKDIR"
 case $COMMAND in
 init)
-  gpull
+  ginitpull
   rm -rf "$FULLDIR"
   mkdir -p "$FULLDIR"
   opam list -asS $* > "$FULLDIR/packages"
@@ -182,12 +188,13 @@ init)
   gpush
   ;;
 clean)
-  gpull
+  ginitpull
   rm -rf "$FULLDIR"
   git commit -a -m "clean $FULLDIR"
   gpush
   ;;
 process)
+  ginitpull
   gpop
   ;;
 *)
